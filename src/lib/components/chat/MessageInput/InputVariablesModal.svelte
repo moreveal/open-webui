@@ -40,7 +40,7 @@
 		const newValues = {};
 		const keys = Object.keys(variables ?? {});
 		for (const key of keys) {
-			const variable = variables[key];
+			const variable = variables?.[key];
 			if (variable?.default !== undefined) {
 				newValues[key] = variable.default;
 			} else {
@@ -89,15 +89,15 @@
 					<div class="px-1">
 						{#if !loading}
 							<div class="flex flex-col gap-1">
-								{#each Object.keys(variables) as variable, idx}
-									{@const { type, ...variableAttributes } = variables[variable] ?? {}}
+								{#each Object.entries(variables ?? {}) as [key, variable], idx}
+									{@const { type, ...variableAttributes } = variable ?? {}}
 
 									<div class=" py-0.5 w-full justify-between">
 										<div class="flex w-full justify-between mb-1.5">
 											<div class=" self-center text-xs font-medium">
-												{variable}
+												{key}
 
-												{#if variables[variable]?.required ?? false}
+												{#if variable?.required ?? false}
 													<span class=" text-gray-500">*{$i18n.t('required')}</span>
 												{/if}
 											</div>
@@ -105,36 +105,39 @@
 
 										<div class="flex mt-0.5 mb-0.5 space-x-2">
 											<div class=" flex-1">
-												{#if variables[variable]?.type === 'select'}
+												{#if variable?.type === 'select'}
+													{@const options = variableAttributes?.options ?? []}
+													{@const placeholder = variableAttributes?.placeholder ?? ''}
+
 													<select
 														class="w-full rounded-lg py-2 px-4 text-sm dark:text-gray-300 dark:bg-gray-850 outline-hidden border border-gray-100/30 dark:border-gray-850/30"
-														bind:value={variableValues[variable]}
+														bind:value={variableValues[key]}
 														id="input-variable-{idx}"
 													>
-														{#if variables[variable]?.placeholder}
-															<option value="" disabled selected>
-																{variables[variable].placeholder}
+														{#if placeholder}
+															<option value="" disabled>
+																{placeholder}
 															</option>
 														{/if}
-														{#each variables[variable]?.options ?? [] as option}
-															<option value={option} selected={option === variableValues[variable]}>
+														{#each options as option}
+															<option value={option}>
 																{option}
 															</option>
 														{/each}
 													</select>
-												{:else if variables[variable]?.type === 'checkbox'}
+												{:else if variable?.type === 'checkbox'}
 													<div class="flex items-center space-x-2">
 														<div class="relative flex justify-center items-center gap-2">
 															<input
 																type="checkbox"
-																bind:checked={variableValues[variable]}
+																bind:checked={variableValues[key]}
 																class="size-3.5 rounded cursor-pointer border border-gray-200 dark:border-gray-700"
 																id="input-variable-{idx}"
 																{...variableAttributes}
 															/>
 
 															<label for="input-variable-{idx}" class="text-sm"
-																>{variables[variable]?.label ?? variable}</label
+																>{variable?.label ?? key}</label
 															>
 														</div>
 
@@ -142,22 +145,22 @@
 															type="text"
 															class="flex-1 py-1 text-sm dark:text-gray-300 bg-transparent outline-hidden"
 															placeholder={$i18n.t('Enter value (true/false)')}
-															bind:value={variableValues[variable]}
+															bind:value={variableValues[key]}
 															autocomplete="off"
-															required={variables[variable]?.required ?? false}
+															required={variable?.required ?? false}
 														/>
 													</div>
-												{:else if variables[variable]?.type === 'color'}
+												{:else if variable?.type === 'color'}
 													<div class="flex items-center space-x-2">
 														<div class="relative size-6">
 															<input
 																type="color"
 																class="size-6 rounded cursor-pointer border border-gray-200 dark:border-gray-700"
-																value={variableValues[variable]}
+																value={variableValues[key]}
 																id="input-variable-{idx}"
 																on:input={(e) => {
 																	// Convert the color value to uppercase immediately
-																	variableValues[variable] = e.target.value.toUpperCase();
+																	variableValues[key] = e.target.value.toUpperCase();
 																}}
 																{...variableAttributes}
 															/>
@@ -167,72 +170,72 @@
 															type="text"
 															class="flex-1 py-2 text-sm dark:text-gray-300 bg-transparent outline-hidden"
 															placeholder={$i18n.t('Enter hex color (e.g. #FF0000)')}
-															bind:value={variableValues[variable]}
+															bind:value={variableValues[key]}
 															autocomplete="off"
-															required={variables[variable]?.required ?? false}
+															required={variable?.required ?? false}
 														/>
 													</div>
-												{:else if variables[variable]?.type === 'date'}
+												{:else if variable?.type === 'date'}
 													<input
 														type="date"
 														class="w-full rounded-lg py-2 px-4 text-sm dark:text-gray-300 dark:bg-gray-850 outline-hidden border border-gray-100/30 dark:border-gray-850/30"
-														placeholder={variables[variable]?.placeholder ?? ''}
-														bind:value={variableValues[variable]}
+														placeholder={variable?.placeholder ?? ''}
+														bind:value={variableValues[key]}
 														autocomplete="off"
 														id="input-variable-{idx}"
-														required={variables[variable]?.required ?? false}
+														required={variable?.required ?? false}
 														{...variableAttributes}
 													/>
-												{:else if variables[variable]?.type === 'datetime-local'}
+												{:else if variable?.type === 'datetime-local'}
 													<input
 														type="datetime-local"
 														class="w-full rounded-lg py-2 px-4 text-sm dark:text-gray-300 dark:bg-gray-850 outline-hidden border border-gray-100/30 dark:border-gray-850/30"
-														placeholder={variables[variable]?.placeholder ?? ''}
-														bind:value={variableValues[variable]}
+														placeholder={variable?.placeholder ?? ''}
+														bind:value={variableValues[key]}
 														autocomplete="off"
 														id="input-variable-{idx}"
-														required={variables[variable]?.required ?? false}
+														required={variable?.required ?? false}
 														{...variableAttributes}
 													/>
-												{:else if variables[variable]?.type === 'email'}
+												{:else if variable?.type === 'email'}
 													<input
 														type="email"
 														class="w-full rounded-lg py-2 px-4 text-sm dark:text-gray-300 dark:bg-gray-850 outline-hidden border border-gray-100/30 dark:border-gray-850/30"
-														placeholder={variables[variable]?.placeholder ?? ''}
-														bind:value={variableValues[variable]}
+														placeholder={variable?.placeholder ?? ''}
+														bind:value={variableValues[key]}
 														autocomplete="off"
 														id="input-variable-{idx}"
-														required={variables[variable]?.required ?? false}
+														required={variable?.required ?? false}
 														{...variableAttributes}
 													/>
-												{:else if variables[variable]?.type === 'month'}
+												{:else if variable?.type === 'month'}
 													<input
 														type="month"
 														class="w-full rounded-lg py-2 px-4 text-sm dark:text-gray-300 dark:bg-gray-850 outline-hidden border border-gray-100/30 dark:border-gray-850/30"
-														placeholder={variables[variable]?.placeholder ?? ''}
-														bind:value={variableValues[variable]}
+														placeholder={variable?.placeholder ?? ''}
+														bind:value={variableValues[key]}
 														autocomplete="off"
 														id="input-variable-{idx}"
-														required={variables[variable]?.required ?? false}
+														required={variable?.required ?? false}
 														{...variableAttributes}
 													/>
-												{:else if variables[variable]?.type === 'number'}
+												{:else if variable?.type === 'number'}
 													<input
 														type="number"
 														class="w-full rounded-lg py-2 px-4 text-sm dark:text-gray-300 dark:bg-gray-850 outline-hidden border border-gray-100/30 dark:border-gray-850/30"
-														placeholder={variables[variable]?.placeholder ?? ''}
-														bind:value={variableValues[variable]}
+														placeholder={variable?.placeholder ?? ''}
+														bind:value={variableValues[key]}
 														autocomplete="off"
 														id="input-variable-{idx}"
-														required={variables[variable]?.required ?? false}
+														required={variable?.required ?? false}
 														{...variableAttributes}
 													/>
-												{:else if variables[variable]?.type === 'range'}
+												{:else if variable?.type === 'range'}
 													<div class="flex items-center space-x-2">
 														<div class="relative flex justify-center items-center gap-2 flex-1">
 															<input
 																type="range"
-																bind:value={variableValues[variable]}
+																bind:value={variableValues[key]}
 																class="w-full rounded-lg py-1 px-4 text-sm dark:text-gray-300 dark:bg-gray-850 outline-hidden border border-gray-100/30 dark:border-gray-850/30"
 																id="input-variable-{idx}"
 																{...variableAttributes}
@@ -243,75 +246,75 @@
 															type="text"
 															class=" py-1 text-sm dark:text-gray-300 bg-transparent outline-hidden text-right"
 															placeholder={$i18n.t('Enter value')}
-															bind:value={variableValues[variable]}
+															bind:value={variableValues[key]}
 															autocomplete="off"
-															required={variables[variable]?.required ?? false}
+															required={variable?.required ?? false}
 														/>
 													</div>
 
 													<!-- <input
 														type="range"
 														class="w-full rounded-lg py-2 px-4 text-sm dark:text-gray-300 dark:bg-gray-850 outline-hidden border border-gray-100/30 dark:border-gray-850/30"
-														placeholder={variables[variable]?.placeholder ?? ''}
-														bind:value={variableValues[variable]}
+														placeholder={variable?.placeholder ?? ''}
+														bind:value={variableValues[key]}
 														autocomplete="off"
 														id="input-variable-{idx}"
 														required
 													/> -->
-												{:else if variables[variable]?.type === 'tel'}
+												{:else if variable?.type === 'tel'}
 													<input
 														type="tel"
 														class="w-full rounded-lg py-2 px-4 text-sm dark:text-gray-300 dark:bg-gray-850 outline-hidden border border-gray-100/30 dark:border-gray-850/30"
-														placeholder={variables[variable]?.placeholder ?? ''}
-														bind:value={variableValues[variable]}
+														placeholder={variable?.placeholder ?? ''}
+														bind:value={variableValues[key]}
 														autocomplete="off"
 														id="input-variable-{idx}"
-														required={variables[variable]?.required ?? false}
+														required={variable?.required ?? false}
 														{...variableAttributes}
 													/>
-												{:else if variables[variable]?.type === 'text'}
+												{:else if variable?.type === 'text'}
 													<input
 														type="text"
 														class="w-full rounded-lg py-2 px-4 text-sm dark:text-gray-300 dark:bg-gray-850 outline-hidden border border-gray-100/30 dark:border-gray-850/30"
-														placeholder={variables[variable]?.placeholder ?? ''}
-														bind:value={variableValues[variable]}
+														placeholder={variable?.placeholder ?? ''}
+														bind:value={variableValues[key]}
 														autocomplete="off"
 														id="input-variable-{idx}"
-														required={variables[variable]?.required ?? false}
+														required={variable?.required ?? false}
 														{...variableAttributes}
 													/>
-												{:else if variables[variable]?.type === 'time'}
+												{:else if variable?.type === 'time'}
 													<input
 														type="time"
 														class="w-full rounded-lg py-2 px-4 text-sm dark:text-gray-300 dark:bg-gray-850 outline-hidden border border-gray-100/30 dark:border-gray-850/30"
-														placeholder={variables[variable]?.placeholder ?? ''}
-														bind:value={variableValues[variable]}
+														placeholder={variable?.placeholder ?? ''}
+														bind:value={variableValues[key]}
 														autocomplete="off"
 														id="input-variable-{idx}"
-														required={variables[variable]?.required ?? false}
+														required={variable?.required ?? false}
 														{...variableAttributes}
 													/>
-												{:else if variables[variable]?.type === 'url'}
+												{:else if variable?.type === 'url'}
 													<input
 														type="url"
 														class="w-full rounded-lg py-2 px-4 text-sm dark:text-gray-300 dark:bg-gray-850 outline-hidden border border-gray-100/30 dark:border-gray-850/30"
-														placeholder={variables[variable]?.placeholder ?? ''}
-														bind:value={variableValues[variable]}
+														placeholder={variable?.placeholder ?? ''}
+														bind:value={variableValues[key]}
 														autocomplete="off"
 														id="input-variable-{idx}"
-														required={variables[variable]?.required ?? false}
+														required={variable?.required ?? false}
 														{...variableAttributes}
 													/>
-												{:else if variables[variable]?.type === 'map'}
+												{:else if variable?.type === 'map'}
 													<!-- EXPERIMENTAL INPUT TYPE, DO NOT USE IN PRODUCTION -->
 													<div class="flex flex-col items-center gap-1">
 														<MapSelector
-															setViewLocation={((variableValues[variable] ?? '').includes(',') ??
+															setViewLocation={((variableValues[key] ?? '').includes(',') ??
 															false)
-																? variableValues[variable].split(',')
+																? variableValues[key].split(',')
 																: null}
 															onClick={(value) => {
-																variableValues[variable] = value;
+																variableValues[key] = value;
 															}}
 														/>
 
@@ -319,19 +322,19 @@
 															type="text"
 															class=" w-full py-1 text-left text-sm dark:text-gray-300 bg-transparent outline-hidden"
 															placeholder={$i18n.t('Enter coordinates (e.g. 51.505, -0.09)')}
-															bind:value={variableValues[variable]}
+															bind:value={variableValues[key]}
 															autocomplete="off"
-															required={variables[variable]?.required ?? false}
+															required={variable?.required ?? false}
 														/>
 													</div>
 												{:else}
 													<textarea
 														class="w-full rounded-lg py-2 px-4 text-sm dark:text-gray-300 dark:bg-gray-850 outline-hidden border border-gray-100/30 dark:border-gray-850/30"
-														placeholder={variables[variable]?.placeholder ?? ''}
-														bind:value={variableValues[variable]}
+														placeholder={variable?.placeholder ?? ''}
+														bind:value={variableValues[key]}
 														autocomplete="off"
 														id="input-variable-{idx}"
-														required={variables[variable]?.required ?? false}
+														required={variable?.required ?? false}
 													/>
 												{/if}
 											</div>
